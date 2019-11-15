@@ -1,0 +1,419 @@
+<?xml version="1.0"?>
+
+<project name="silent-install" basedir="." default="silent_install">
+<!--The following TASKDEF is needed to include the ANT-CONTRIB libraries -->
+<!--<taskdef resource="net/sf/antcontrib/antlib.xml"/> -->
+
+	<property environment="env"/>
+	<property file="silent-install.properties"/> 
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+	  <classpath>
+		<pathelement location="${user.dir}/ant-contrib.jar"/>
+	  </classpath>
+	</taskdef>
+	
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	  <classpath>
+		<pathelement location="${user.dir}/ant-contrib.jar"/>
+	  </classpath>
+	</taskdef>
+	
+   <condition property="isUnix">
+      <os family="unix"/>
+   </condition>
+
+   <if>
+    <equals arg1="${isUnix}" arg2="true"/>
+   	<then>
+   		<property name="os_family" value="unix" />
+   	</then>
+   	<else>
+   		<property name="os_family" value="windows" />
+   	</else>
+   </if>
+
+  
+  <target name="create_db_silent_resp">
+	<echo file="${TEMPORARY_DIRECTORY}/silent-db-client.rsp">
+	oracle.install.responseFileVersion=/oracle/install/rspfmt_clientinstall_response_schema_v${ORACLE_DB_CLIENT_VERSION}
+	ORACLE_HOSTNAME=${ADMIN_HOST}
+	UNIX_GROUP_NAME=${ORACLE_INSTALL_GROUP}
+	INVENTORY_LOCATION=${ORACLE_INVENTORY_HOME}
+	SELECTED_LANGUAGES=en
+	ORACLE_HOME=${ORACLE_DB_CLIENT_HOME}/product/${ORACLE_DB_CLIENT_VERSION}/client_1
+	ORACLE_BASE=${ORACLE_DB_CLIENT_HOME}
+	oracle.install.client.installType=Administrator
+	oracle.install.client.customComponents=
+	oracle.install.client.schedulerAgentHostName=
+	oracle.install.client.schedulerAgentPortNumber=
+	</echo>
+  </target>
+
+  <target name="create_repository">
+	<echo file="passwordfile.txt">${SYS_PASSWORD}${line.separator}${SCHEMA_PASSWORD}</echo>	
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="create_repository">${MIDDLEWARE_HOME}/oracle_common/bin/rcu -silent -createRepository -databaseType ORACLE -connectString ${DATA_SOURCE_URL} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -useSamePasswordForAllSchemaUsers true -component STB -component OPSS -component CONTENT -component IAU -component IAU_APPEND -component IAU_VIEWER -component MDS -component CAPTURE -component WLS &lt; passwordfile.txt</echo>
+		<exec executable="/bin/bash">
+		   <arg value="create_repository"/>
+		</exec>
+		<delete file="create_repository"/>
+	    </then>
+	    <else>
+		<echo file="create_repository.bat">${MIDDLEWARE_HOME}/oracle_common/bin/rcu -silent -createRepository -databaseType ORACLE -connectString ${DATA_SOURCE_URL} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -useSamePasswordForAllSchemaUsers true -component STB -component OPSS -component CONTENT -component IAU -component IAU_APPEND -component IAU_VIEWER -component MDS -component CAPTURE -component WLS &lt; passwordfile.txt</echo>
+		<exec executable="create_repository.bat"/>
+		<delete file="create_repository.bat"/>
+  	    </else>
+	</if>
+	<delete file="passwordfile.txt"/>
+  </target>
+
+  <target name="drop_repository">
+	<echo file="passwordfile.txt">${SYS_PASSWORD}${line.separator}${SCHEMA_PASSWORD}</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="drop_repository">${MIDDLEWARE_HOME}/oracle_common/bin/rcu -silent -dropRepository -databaseType ORACLE -connectString ${DATA_SOURCE_URL} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -component STB -component OPSS -component CONTENT -component IAU -component IAU_APPEND -component IAU_VIEWER -component MDS -component CAPTURE -component WLS &lt; passwordfile.txt</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="drop_repository"/>
+		</exec>
+		<delete file="drop_repository"/>
+	    </then>
+	    <else>
+		<echo file="drop_repository.bat">${MIDDLEWARE_HOME}/oracle_common/bin/rcu -silent -dropRepository -databaseType ORACLE -connectString ${DATA_SOURCE_URL} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -component STB -component OPSS -component CONTENT -component IAU -component IAU_APPEND -component IAU_VIEWER -component MDS -component CAPTURE -component WLS &lt; passwordfile.txt</echo>
+		<exec executable="drop_repository.bat"/>
+		<delete file="drop_repository.bat"/>
+  	    </else>
+	</if>
+	<delete file="passwordfile.txt"/>
+  </target>
+  
+  <target name="drop_domain_repository">
+	<echo file="passwordfile.txt">${SYS_PASSWORD}${line.separator}${SCHEMA_PASSWORD}</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="drop_domain_repository">${MIDDLEWARE_HOME}/oracle_common/bin/rcu -silent -dropRepository -databaseType ORACLE -connectString ${DATA_SOURCE_URL} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -component OPSS &lt; passwordfile.txt</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="drop_domain_repository"/>
+		</exec>
+		<delete file="drop_domain_repository"/>
+	    </then>
+	    <else>
+		<echo file="drop_domain_repository.bat">${MIDDLEWARE_HOME}/oracle_common/bin/rcu -silent -dropRepository -databaseType ORACLE -connectString ${DATA_SOURCE_URL} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -component OPSS &lt; passwordfile.txt</echo>
+		<exec executable="drop_domain_repository.bat"/>
+		<delete file="drop_domain_repository.bat"/>
+  	    </else>
+	</if>
+	<delete file="passwordfile.txt"/>
+  </target>
+  
+  <target name="create_domain_repository">
+	<echo file="passwordfile.txt">${SYS_PASSWORD}${line.separator}${SCHEMA_PASSWORD}</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="create_domain_repository">${MIDDLEWARE_HOME}/oracle_common/bin/rcu -silent -createRepository -databaseType ORACLE -connectString ${DATA_SOURCE_URL} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -useSamePasswordForAllSchemaUsers true -component OPSS &lt; passwordfile.txt</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="create_domain_repository"/>
+		</exec>
+		<delete file="create_domain_repository"/>
+	    </then>
+	    <else>
+		<echo file="create_domain_repository.bat">${MIDDLEWARE_HOME}/oracle_common/bin/rcu -silent -createRepository -databaseType ORACLE -connectString ${DATA_SOURCE_URL} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -useSamePasswordForAllSchemaUsers true -component OPSS &lt; passwordfile.txt</echo>
+		<exec executable="create_domain_repository.bat"/>
+		<delete file="create_domain_repository.bat"/>
+  	    </else>
+	</if>
+	<delete file="passwordfile.txt"/>
+  </target>
+
+  <target name="install_weblogic_server">
+	<echo>INSTALLING WEBLOGIC SERVER</echo>
+	<echo file="silent-weblogic-server.txt">
+		[ENGINE]
+		Response File Version=1.0.0.0.0
+		[GENERIC]
+		DECLINE_AUTO_UPDATES=true
+		ORACLE_HOME=${MIDDLEWARE_HOME}
+		INSTALL_TYPE=WebLogic Server
+	</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+		<then>
+			<echo file="install_weblogic_server">${JAVA_HOME}/bin/java -jar ${WEBLOGIC_SERVER_INSTALL_FILE_PATH} -silent -ignoreSysPrereqs -responsefile ${user.dir}/silent-weblogic-server.txt -invPtrLoc ${TEMPORARY_DIRECTORY}/oraInst.loc</echo>
+			<exec executable="/bin/bash">
+				<arg value="install_weblogic_server"/>
+			</exec>
+			<delete file="install_weblogic_server"/>
+	    </then>
+	    <else>
+			<echo file="install_weblogic_server.bat">${JAVA_HOME}/bin/java -jar ${WEBLOGIC_SERVER_INSTALL_FILE_PATH} -silent -ignoreSysPrereqs -responsefile ${user.dir}/silent-weblogic-server.txt -invPtrLoc ${TEMPORARY_DIRECTORY}/oraInst.loc</echo>
+			<exec executable="install_weblogic_server.bat"/>
+			<delete file="install_weblogic_server.bat"/>
+  	    </else>
+	</if>
+	<delete file="silent-weblogic-server.txt"/>
+  </target>
+  
+  <target name="install_weblogic_infrastructure">
+	<echo>INSTALLING WEBLOGIC INFRASTRUCTURE</echo>
+	<echo file="silent-weblogic-infrastructure.txt">
+		[ENGINE]
+		Response File Version=1.0.0.0.0
+		[GENERIC]
+		DECLINE_AUTO_UPDATES=true
+		ORACLE_HOME=${MIDDLEWARE_HOME}
+		INSTALL_TYPE=Fusion Middleware Infrastructure
+	</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+		<then>
+			<echo file="install_weblogic_infrastructure">${JAVA_HOME}/bin/java -jar ${WEBLOGIC_INFRASTRUCTURE_INSTALL_FILE_PATH} -silent -ignoreSysPrereqs -responsefile ${user.dir}/silent-infrastructure.txt -invPtrLoc ${TEMPORARY_DIRECTORY}/oraInst.loc</echo>
+			<exec executable="/bin/bash">
+				<arg value="install_weblogic_infrastructure"/>
+			</exec>
+			<delete file="install_weblogic_infrastructure"/>
+	    </then>
+	    <else>
+			<echo file="install_weblogic_infrastructure.bat">${JAVA_HOME}/bin/java -jar ${WEBLOGIC_INFRASTRUCTURE_INSTALL_FILE_PATH} -silent -ignoreSysPrereqs -responsefile ${user.dir}/silent-infrastructure.txt -invPtrLoc ${TEMPORARY_DIRECTORY}/oraInst.loc</echo>
+			<exec executable="install_weblogic_infrastructure.bat"/>
+			<delete file="install_weblogic_infrastructure.bat"/>
+  	    </else>
+	</if>
+	<delete file="silent-weblogic-infrastructure.txt"/>
+  </target>
+
+  <target name="install_ucm">
+	<echo>INSTALLING UCM</echo>
+	<echo file="silent-ucm.txt">
+		[ENGINE]
+		Response File Version=1.0.0.0.0
+		[GENERIC]
+		DECLINE_AUTO_UPDATES=true
+		ORACLE_HOME=${MIDDLEWARE_HOME}
+		INSTALL_TYPE=WebCenter Content
+	</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+		<then>
+			<echo file="install_ucm">${JAVA_HOME}/bin/java -jar ${UCM_INSTALL_FILE_PATH} -silent -ignoreSysPrereqs -responsefile ${user.dir}/silent-ucm.txt -invPtrLoc ${TEMPORARY_DIRECTORY}/oraInst.loc</echo>
+			<exec executable="/bin/bash">
+				<arg value="install_ucm"/>
+			</exec>
+			<delete file="install_ucm"/>
+	    </then>
+	    <else>
+			<echo file="install_ucm.bat">${JAVA_HOME}/bin/java -jar ${UCM_INSTALL_FILE_PATH} -silent -ignoreSysPrereqs -responsefile ${user.dir}/silent-ucm.txt -invPtrLoc ${TEMPORARY_DIRECTORY}/oraInst.loc</echo>
+			<exec executable="install_ucm.bat"/>
+			<delete file="install_ucm.bat"/>
+  	    </else>
+	</if>
+	<delete file="silent-ucm.txt"/>
+  </target>
+	
+  <target name="install_db_client">
+	<antcall target="create_db_silent_resp"/>
+	<echo>INSTALLING DATABASE CLIENT</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="install_db_client">${SOFTWARE_DIRECTORY_DB_CLIENT}/client/runInstaller -silent -ignoreSysPrereqs  -ignoreDiskWarning -responseFile ${TEMPORARY_DIRECTORY}/silent-db-client.rsp</echo>
+		<exec executable="/bin/bash">
+		   <arg value="install_db_client"/>
+		</exec>
+		<delete file="install_db_client"/>
+	    </then>
+	    <else>
+		<echo file="install_db_client.bat">${SOFTWARE_DIRECTORY_DB_CLIENT}/client/setup.exe -silent -ignoreSysPrereqs  -ignoreDiskWarning -responseFile ${TEMPORARY_DIRECTORY}/silent-db-client.rsp</echo>
+		<exec executable="cmd">
+			 <arg value="/c"/>
+			 <arg value="install_db_client.bat"/>
+			 <arg value="-p"/>
+		</exec>
+		<delete file="install_db_client.bat"/>
+  	    </else>
+	</if>
+  </target>
+
+  <target name="create_domain">
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+	<copy file="create_environment.py" tofile="create_environment_wk.py" overwrite="true"/>
+	<replace file="create_environment_wk.py" token="adminUser"  value="${adminUser}"/>
+	<replace file="create_environment_wk.py" token="adminPassword"  value="${adminPassword}"/>
+	<replace file="create_environment_wk.py" token="MACHINE_ADDRESS"  value="${MACHINE_ADDRESS}"/>
+	<replace file="create_environment_wk.py" token="CUST_SERVER_NAMES"  value="${CUST_SERVER_NAMES}"/>
+	<replace file="create_environment_wk.py" token="CUST_SERVER_PORTS"  value="${CUST_SERVER_PORTS}"/>
+	<echo>CREATE DOMAIN</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="create_domain">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/create_environment_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="create_domain"/>
+		</exec>
+	    </then>
+	    <else>
+		<echo file="create_domain.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/create_environment_wk.py</echo>
+		<exec executable="create_domain.bat"/>
+  	    </else>
+	</if>
+	<delete file="create_domain"/>
+	<delete file="create_domain.bat"/>
+	<delete file="create_environment_wk.py"/>
+  </target>
+  
+  <target name="createAuthFiles_set_nodemng_cred">
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+	<copy file="createAuthFiles_set_nodemng_cred.py" tofile="createAuthFiles_set_nodemng_cred_wk.py" overwrite="true"/>
+	<replace file="createAuthFiles_set_nodemng_cred_wk.py" token="adminUser"  value="${adminUser}"/>
+	<replace file="createAuthFiles_set_nodemng_cred_wk.py" token="adminPassword"  value="${adminPassword}"/>	
+	<replace file="createAuthFiles_set_nodemng_cred_wk.py" token="CUST_SERVER_NAMES"  value="${CUST_SERVER_NAMES}"/>	
+	<replace file="createAuthFiles_set_nodemng_cred_wk.py" token="CUST_SERVER_PORTS"  value="${CUST_SERVER_PORTS}"/>	
+
+	<mkdir dir="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/ucm/cs/bin"/>
+
+	<propertyfile file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/ucm/cs/bin/autoinstall.cfg" comment="nodemanger properties">
+		<entry  key="IDC_Name" value="UCM_server1"/>
+		<entry  key="IDC_ID" value="UCM_server1"/>
+		<entry  key="AutoInstallComplete" value="true"/>
+		<entry  key="AutoNumberPrefix" value="WCC"/>
+		<entry  key="IsAutoNumber" value="1"/>
+		<entry  key="IntradocServerPort" value="4444"/>
+		<entry  key="SocketHostAddressSecurityFilter" value="127.0.0.1|0.0.0.0.0.0.0.1"/>
+		<entry  key="MailServer" value="mail.mycompany.com"/>
+		<entry  key="SysAdminAddress" value="admin@mycompany.com"/>
+		<entry  key="InstanceDescription" value="Inspyrus WCC instance"/>
+		<entry  key="InstanceMenuLabel" value="Inspyrus WCC instance"/>
+		<entry  key="SearchIndexerEngineName" value="DATABASE.METADATA"/>
+		<entry  key="IntradocDir" value="${INTRADOCDIR}"/>
+		<entry  key="VaultDir" value="${VAULTDIR}"/>
+		<entry  key="WeblayoutDir" value="${WEBLAYOUTDIR}"/>
+		<entry  key="UserProfilesDir" value="${USERPROFILESDIR}"/>
+		<entry  key="ServiceAllowRetry" value="true"/>
+		<entry  key="DisableSharedCacheChecking" value="true"/>
+	</propertyfile>
+
+	<echo>CREATING AUTH FILES AND SETTING NODE MANAGER CREDENTIALS</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+			<echo file="createAuthFiles_set_nodemng_cred">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/createAuthFiles_set_nodemng_cred_wk.py</echo>
+			<echo>${user.dir}</echo>
+			<exec executable="/bin/bash">
+				<arg value="createAuthFiles_set_nodemng_cred"/>
+			</exec>
+			<delete file="createAuthFiles_set_nodemng_cred"/>
+		</then>
+		<else>
+			<echo file="createAuthFiles_set_nodemng_cred.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/createAuthFiles_set_nodemng_cred_wk.py</echo>
+			<exec executable="createAuthFiles_set_nodemng_cred.bat"/>
+			<delete file="createAuthFiles_set_nodemng_cred.bat"/>
+		</else>
+	</if>
+	<delete file="createAuthFiles_set_nodemng_cred_wk.py"/>
+	<antcall target="create_start_server_files"/>
+	<mkdir dir="${TEMPORARY_DIRECTORY}/PyPDF2-1.26.0/"/>
+	<copy todir="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/PyPDF2-1.26.0/" overwrite="true">
+		<fileset dir="${user.dir}/PyPDF2-1.26.0/" includes="*.*" />
+	</copy>
+  </target>
+
+  <target name="create_start_server_files">
+	<copy file="start_server_build.xml" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/build.xml" overwrite="true"/>
+	<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/startAdminServer.py">
+nmConnect(userConfigFile=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/wlst_scripts/userconfigfile.secure', userKeyFile=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/wlst_scripts/userkeyfile.secure', host=ADMIN_HOST, port='5556', domainName=DOMAIN_NAME, domainDir=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME, nmType=NODE_MANAGER_MODE)
+prps = makePropertiesObject("weblogic.ListenPort=7001")
+nmServerStatus('AdminServer')
+nmStart('AdminServer', props=prps)
+nmDisconnect()
+	</echo> 
+	<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/startAllServers.py">
+startNodeManager(verbose='true',NodeManagerHome=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/nodemanager')
+nmConnect(userConfigFile=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/wlst_scripts/userconfigfile.secure', userKeyFile=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/wlst_scripts/userkeyfile.secure', host=ADMIN_HOST, port='5556', domainName=DOMAIN_NAME, domainDir=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME, nmType=NODE_MANAGER_MODE)
+prps = makePropertiesObject("weblogic.ListenPort=7001")
+if nmServerStatus('AdminServer') != 'RUNNING':
+	print 'Admin server status: ' + nmServerStatus('AdminServer')
+	print 'Starting AdminServer'
+	nmStart('AdminServer', props=prps)
+if nmServerStatus('AdminServer') == 'RUNNING':
+	if nmServerStatus('UCM_server1') != 'RUNNING':
+		print 'UCM server status: ' + nmServerStatus('UCM_server1')
+		print 'Starting UCM_server1'
+		nmStart('UCM_server1')
+	if nmServerStatus('inspy_server1') != 'RUNNING':
+		print 'INSPY server status: ' + nmServerStatus('inspy_server1')
+		print 'Starting inspy_server1'
+		nmStart('inspy_server1')
+	if nmServerStatus('iui_server1') != 'RUNNING':
+		print 'IUI server status: ' + nmServerStatus('iui_server1')
+		print 'Starting iui_server1'
+		nmStart('iui_server1')
+else:
+	print 'Could not bring other servers as Admin server status: ' + nmServerStatus('AdminServer') 
+	
+nmDisconnect()
+	</echo>
+	<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/stopAllServers.py">
+nmConnect(userConfigFile=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/wlst_scripts/userconfigfile.secure', userKeyFile=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/wlst_scripts/userkeyfile.secure', host=ADMIN_HOST, port='5556', domainName=DOMAIN_NAME, domainDir=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME, nmType=NODE_MANAGER_MODE)
+prps = makePropertiesObject("weblogic.ListenPort=7001")
+print 'Killing iui_server1'
+nmKill('iui_server1')
+print 'IUI server status: ' + nmServerStatus('iui_server1')
+print 'Killing inspy_server1'
+nmKill('inspy_server1')
+print 'INSPY server status: ' + nmServerStatus('inspy_server1')
+print 'Killing UCM_server1'
+nmKill('UCM_server1')
+print 'UCM server status: ' + nmServerStatus('UCM_server1')
+print 'Killing AdminServer'
+nmKill('AdminServer')
+print 'Admin server status: ' + nmServerStatus('AdminServer')
+
+stopNodeManager()
+	</echo>
+	<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/nodemanager.py">
+startNodeManager(verbose='true',NodeManagerHome=CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/nodemanager')
+	</echo>
+	<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/createAuthFiles.py">
+admin_server_url = 't3://' + ADMIN_HOST + ':' + '7001';
+connect('adminUser', 'adminPassword', url=admin_server_url)
+prps = makePropertiesObject("weblogic.ListenPort=8001")
+storeUserConfig(CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/wlst_scripts/generated_auth_files/userconfigfile.secure', CONFIGURATION_HOME + '/domains/' + DOMAIN_NAME + '/wlst_scripts/generated_auth_files/userkeyfile.secure')
+nmDisconnect();
+	</echo>
+	<copy file="${user.dir}/ant-contrib.jar" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/ant-contrib.jar" overwrite="true"/>
+	<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/silent-install.properties">
+JAVA_HOME=${JAVA_HOME}
+CONFIGURATION_HOME=${CONFIGURATION_HOME}
+DOMAIN_NAME=${DOMAIN_NAME}
+ADMIN_HOST=${ADMIN_HOST}
+NODE_MANAGER_MODE=${NODE_MANAGER_MODE}
+WEBLOGIC_HOME=${WEBLOGIC_HOME}
+MIDDLEWARE_HOME=${MIDDLEWARE_HOME}
+	</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/setEnvironmentVars.sh">
+export PATH=$PATH:${MIDDLEWARE_HOME}/oracle_common/modules/thirdparty/org.apache.ant/1.9.8.0.0/apache-ant-1.9.8/bin
+export JAVA_HOME=${JAVA_HOME}
+		</echo>
+	    </then>
+	    <else>
+		<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/setEnvironmentVars.bat">
+set PATH=%PATH%;${MIDDLEWARE_HOME}/oracle_common/modules/thirdparty/org.apache.ant/1.9.8.0.0/apache-ant-1.9.8/bin
+set JAVA_HOME=${JAVA_HOME}
+		</echo>
+  	    </else>
+	</if>
+  </target>
+</project>

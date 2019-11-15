@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<project name="silent-install" basedir="." default="silent_install">
+	<!--The following TASKDEF is needed to include the ANT-CONTRIB libraries -->
+	<!--<taskdef resource="net/sf/antcontrib/antlib.xml"/> -->
+
+	<property environment="env"/>
+	<property file="silent-install.properties"/> 
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+	  <classpath>
+		<pathelement location="${user.dir}/ant-contrib.jar"/>
+	  </classpath>
+	</taskdef>
+	
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	  <classpath>
+		<pathelement location="${user.dir}/ant-contrib.jar"/>
+	  </classpath>
+	</taskdef>
+   <condition property="isUnix">
+      <os family="unix"/>
+   </condition>
+
+	<if>
+		<equals arg1="${isUnix}" arg2="true"/>
+		<then>
+			<property name="os_family" value="unix" />
+		</then>
+		<else>
+			<property name="os_family" value="windows" />
+		</else>
+	</if>
+
+ 
+   <target name="startNodeManager">
+	<!--change StartScriptEnabled and StopScriptEnabled to true -->
+	<propertyfile file="${CONFIGURATION_HOME}/domains/${DOMAIN_NAME}/nodemanager/nodemanager.properties" comment="nodemanger properties">
+		  <entry  key="weblogic.StartScriptEnabled" value="true"/>
+		  <entry  key="weblogic.StopScriptEnabled" value="true"/>
+		  <entry  key="ListenPort" value="5556"/>
+		  <entry  key="SecureListener" value="false"/>
+	</propertyfile>
+	<echo>START NODE MANAGER</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="nodemanger">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/nodemanager.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="nodemanger"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="nodemanger.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/nodemanager.py</echo>
+		<exec executable="nodemanger.bat"/>
+		</else>
+	</if>
+	
+	<delete file="nodemanger"/>
+	<delete file="nodemanger.bat"/>
+  </target>
+  
+  <target name="startAdminServer">
+	<echo>START ADMIN SERVER</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="startAdminServer">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startAdminServer.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="startAdminServer"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="startAdminServer.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startAdminServer.py</echo>
+		<exec executable="startAdminServer.bat"/>
+		</else>
+	</if>
+	<delete file="startAdminServer"/>
+	<delete file="startAdminServer.bat"/>
+  </target>
+
+  <target name="startAllServers">
+	<echo>START ALL SERVERS</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="startAllServers">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startAllServers.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="startAllServers"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="startAllServers.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startAllServers.py</echo>
+		<exec executable="startAllServers.bat"/>
+		</else>
+	</if>
+	<delete file="startAllServers"/>
+	<delete file="startAllServers.bat"/>
+  </target>
+
+  <target name="stopAllServers">
+	<echo>STOP ALL SERVERS</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="stopAllServers">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/stopAllServers.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="stopAllServers"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="stopAllServers.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/stopAllServers.py</echo>
+		<exec executable="stopAllServers.bat"/>
+		</else>
+	</if>
+	<delete file="stopAllServers"/>
+	<delete file="stopAllServers.bat"/>
+  </target>
+  
+  <target name="createAuthFiles">
+	<echo>CREATING AUTH FILES</echo>
+	<copy file="createAuthFiles.py" tofile="createAuthFiles_wk.py" overwrite="true"/>
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+	<replace file="createAuthFiles_wk.py" token="adminUser"  value="${adminUser}"/>
+	<replace file="createAuthFiles_wk.py" token="adminPassword"  value="${adminPassword}"/>
+	<copy file="userkeyfile.secure" tofile="generated_auth_files/userkeyfile.secure" overwrite="true"/>
+	<copy file="userconfigfile.secure" tofile="generated_auth_files/userconfigfile.secure" overwrite="true"/>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="createAuthFiles">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/createAuthFiles_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="createAuthFiles"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="createAuthFiles.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/createAuthFiles_wk.py</echo>
+		<exec executable="createAuthFiles.bat"/>
+		</else>
+	</if>
+	<delete file="createAuthFiles"/>
+	<delete file="createAuthFiles.bat"/>
+	<delete file="createAuthFiles_wk.py"/>
+	<echo>
+		Replace userkeyfile.secure and userconfigfile.secure under ${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts with those under ${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/generated_auth_files to start/stop servers.
+	</echo>
+	</target>
+	</project>
