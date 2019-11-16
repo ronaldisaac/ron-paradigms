@@ -76,6 +76,7 @@ machine = create('machine_' + machine_listen_addresses[0],MACHINE_TYPE);
 cd('/Machine/' + machine.getName());
 nodemanager = create(machine.getName(),'NodeManager');
 nodemanager.setListenAddress(machine_listen_addresses[0]);
+nodemanager.setListenPort(int(NODE_MANAGER_PORT));
 nodemanager.setNMType(NODE_MANAGER_MODE);
 cd('/');
 
