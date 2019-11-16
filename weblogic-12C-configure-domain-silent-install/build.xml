@@ -154,7 +154,7 @@
 	<replace file="configure_domain_wk.py" token="APP_SERVER_NAMES"  value="${APP_SERVER_NAMES}"/>	
 	<replace file="configure_domain_wk.py" token="APP_SERVER_PORTS"  value="${APP_SERVER_PORTS}"/>	
 
-	<echo>CONFIGURING DOMIN</echo>
+	<echo>CONFIGURING DOMAIN</echo>
 	<if>
 		<equals arg1="${os_family}" arg2="unix"/>
 		<then>
