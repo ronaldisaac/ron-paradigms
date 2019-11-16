@@ -37,21 +37,21 @@
 	<propertyfile file="${CONFIGURATION_HOME}/domains/${DOMAIN_NAME}/nodemanager/nodemanager.properties" comment="nodemanger properties">
 		  <entry  key="weblogic.StartScriptEnabled" value="true"/>
 		  <entry  key="weblogic.StopScriptEnabled" value="true"/>
-		  <entry  key="ListenPort" value="5556"/>
+		  <entry  key="ListenPort" value="${NODE_MANAGER_PORT}"/>
 		  <entry  key="SecureListener" value="false"/>
 	</propertyfile>
 	<echo>START NODE MANAGER</echo>
 	<if>
 		<equals arg1="${os_family}" arg2="unix"/>
 		<then>
-		<echo file="nodemanger">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/nodemanager.py</echo>
+		<echo file="nodemanger">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startNodeManager.py</echo>
 		<echo>${user.dir}</echo>
 		<exec executable="/bin/bash">
 		   <arg value="nodemanger"/>
 		</exec>
 		</then>
 		<else>
-		<echo file="nodemanger.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/nodemanager.py</echo>
+		<echo file="nodemanger.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startNodeManager.py</echo>
 		<exec executable="nodemanger.bat"/>
 		</else>
 	</if>

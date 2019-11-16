@@ -29,8 +29,8 @@ def createFile(directory_name, file_name, content):
 			
 print 'SETTING PARAMETERS';
 machine_listen_addresses=MACHINE_ADDRESS;
-customer_server_names=CUST_SERVER_NAMES;
-customer_server_ports=CUST_SERVER_PORTS;
+application_server_names=APP_SERVER_NAMES;
+application_server_ports=APP_SERVER_PORTS;
 data_source_url=DATA_SOURCE_URL;
 data_source_driver=DATA_SOURCE_DRIVER;
 data_source_user_prefix=SERVERS_SCHEMA_PREFIX;
@@ -43,14 +43,11 @@ java_home=JAVA_HOME;
 middleware_home=MIDDLEWARE_HOME;
 weblogic_home=WEBLOGIC_HOME;
 configuration_home=CONFIGURATION_HOME;
-Oracle_UCM1_home=Oracle_UCM1_HOME;
 
 domain_home=configuration_home + '/domains/' + domain_name;
 domain_application_home=configuration_home + '/applications/' + domain_name;
 
 weblogic_template=weblogic_home + '/common/templates/wls/wls.jar';
-
-Oracle_UCM_ContentServer=Oracle_UCM1_home +'/common/templates/wls/oracle.ucm.cs_template.jar';
 
 print 'CREATE DOMAIN';
 readTemplate(weblogic_template);
@@ -70,8 +67,6 @@ closeTemplate();
 print 'READ DOMAIN';
 readDomain(domain_home);
 
-print 'ADD TEMPLATES';
-addTemplate(Oracle_UCM_ContentServer);
 
 setOption('AppDir', domain_application_home);
 
@@ -84,40 +79,14 @@ nodemanager.setListenAddress(machine_listen_addresses[0]);
 nodemanager.setNMType(NODE_MANAGER_MODE);
 cd('/');
 
-print 'CREATING INSPY_SERVER1';
-create('inspy_server1','Server');
-cd('/Servers/inspy_server1');
-cmo.setName('inspy_server1');
-cmo.setListenPort(int(INSPY_SERVER_PORT));
-cmo.setMachine(machine);
-
-cd('/');
-
-print 'CREATING UCM_SERVER1';
-cd('/Servers/UCM_server1');
-cmo.setName('UCM_server1');
-cmo.setListenPort(int(UCM_SERVER_PORT));
-cmo.setMachine(machine);
-
-cd('/');
-
-print 'CREATING IUI_SERVER1';
-create('iui_server1','Server');
-cd('/Servers/iui_server1');
-cmo.setName('iui_server1');
-cmo.setListenPort(int(IUI_SERVER_PORT));
-cmo.setMachine(machine);
-
-cd('/');
-
-for j in range(len(customer_server_names)):
+for j in range(len(application_server_names)):
 	cd('/');
-	print 'CREATING CUSTOMER SERVER: ' + customer_server_names[j];
-	create(customer_server_names[j],'Server');
-	cd('/Servers/' + customer_server_names[j]);
-	cmo.setName(customer_server_names[j]);
+	print 'CREATING APP SERVER: ' + application_server_names[j];
+	create(application_server_names[j],'Server');
+	cd('/Servers/' + application_server_names[j]);
+	cmo.setName(application_server_names[j]);
 	cmo.setMachine(machine);
-	cmo.setListenPort(int(customer_server_ports[j]));
+	cmo.setListenPort(int(application_server_ports[j]));
 	
 cd('/');
 	
