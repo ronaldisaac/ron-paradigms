@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+
+<project name="silent-install" basedir="." default="silent_install">
+<!--The following TASKDEF is needed to include the ANT-CONTRIB libraries -->
+<!--<taskdef resource="net/sf/antcontrib/antlib.xml"/> -->
+
+	<property environment="env"/>
+	<property file="silent-install.properties"/> 
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+	  <classpath>
+		<pathelement location="${user.dir}/ant-contrib.jar"/>
+	  </classpath>
+	</taskdef>
+	
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	  <classpath>
+		<pathelement location="${user.dir}/ant-contrib.jar"/>
+	  </classpath>
+	</taskdef>
+	
+   <condition property="isUnix">
+      <os family="unix"/>
+   </condition>
+
+   <if>
+    <equals arg1="${isUnix}" arg2="true"/>
+   	<then>
+   		<property name="os_family" value="unix" />
+   	</then>
+   	<else>
+   		<property name="os_family" value="windows" />
+   	</else>
+   </if>
+
+  <target name="createJMSQueue">
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+	<copy file="createJMSQueue.py" tofile="createJMSQueue_wk.py" overwrite="true"/>
+	<replace file="createJMSQueue_wk.py" token="adminUser"  value="${adminUser}"/>
+	<replace file="createJMSQueue_wk.py" token="adminPassword"  value="${adminPassword}"/>
+	<replace file="createJMSQueue_wk.py" token="MACHINE_ADDRESS"  value="${MACHINE_ADDRESS}"/>
+	<replace file="createJMSQueue_wk.py" token="APP_SERVER_NAMES"  value="${APP_SERVER_NAMES}"/>
+	<replace file="createJMSQueue_wk.py" token="APP_SERVER_PORTS"  value="${APP_SERVER_PORTS}"/>
+	<echo>CREATE JMS QUEUE</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="createJMSQueue">#!/bin/sh${line.separator} ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/createJMSQueue_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="createJMSQueue"/>
+		</exec>
+	    </then>
+	    <else>
+		<echo file="createJMSQueue.bat">CALL ${MIDDLEWARE_HOME}/oracle_common/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/createJMSQueue_wk.py</echo>
+		<exec executable="createJMSQueue.bat"/>
+  	    </else>
+	</if>
+	<delete file="createJMSQueue"/>
+	<delete file="createJMSQueue.bat"/>
+	<delete file="createJMSQueue_wk.py"/>
+  </target>
+</project>
